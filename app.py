@@ -31,6 +31,13 @@ app.config['DEBUG'] = os.environ.get('FLASK_DEBUG')
 def hello_world():
     return "Hello, World"
 
+model_path = './models/transformers/'
+model = TFAutoModelForSequenceClassification.from_pretrained(model_path, local_files_only=True)
+print("----------- transformer model loaded ------------")
+tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
+print("----------- transformer tokenizer loaded ------------")
+classifier = pipeline('sentiment-analysis', model=model, tokenizer=tokenizer, top_k=None)
+
 @app.route('/predict', methods=[ 'POST'])
 def calc_emo():
     data = request.json
@@ -47,6 +54,7 @@ def calc_emo():
 
     # the classifier
     result = classifier(text)
+    print(result)
 
     # Calculate time and CPU usage
     elapsed_time = time.time() - start_time
@@ -90,12 +98,4 @@ def version():
   return jsonify(response_body)
 
 if __name__ == "__main__":
-    model_path = './models/transformers/' 
-    model = TFAutoModelForSequenceClassification.from_pretrained(model_path, local_files_only=True)
-    print("----------- transformer model loaded ------------")
-    tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
-    print("----------- transformer tokenizer loaded ------------")
-    classifier = pipeline('sentiment-analysis', model=model, tokenizer=tokenizer)
-    print(classifier)
-    
     app.run()
